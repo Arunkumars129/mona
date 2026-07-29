@@ -23,6 +23,8 @@ import { createLLMClient, ModelRouter } from "@mona/provider";
 import type { LLMClient } from "@mona/provider";
 import { ToolRegistry, createSpreadsheetTools } from "@mona/tools";
 import { ContextBuilder } from "@mona/context";
+import { AgentRegistry, PlannerAgent } from "@mona/agents";
+import { InMemoryMemoryStore } from "@mona/memory";
 import type { WorkbookService } from "@mona/workbook-service";
 import { SessionManager } from "./session-manager";
 import type { StreamEvent } from "./stream";
@@ -67,6 +69,8 @@ export class MonaRuntime {
   private readonly config: RuntimeConfig;
   private readonly sessionManager: SessionManager;
   private readonly toolRegistry: ToolRegistry;
+  private readonly agentRegistry: AgentRegistry;
+  private readonly memoryStore: InMemoryMemoryStore;
   private readonly contextBuilder: ContextBuilder;
   private readonly modelRouter: ModelRouter;
   private readonly llmClients: Map<string, LLMClient> = new Map();
@@ -77,6 +81,8 @@ export class MonaRuntime {
     this.config = config;
     this.sessionManager = new SessionManager();
     this.toolRegistry = new ToolRegistry();
+    this.agentRegistry = new AgentRegistry();
+    this.memoryStore = new InMemoryMemoryStore();
     this.contextBuilder = new ContextBuilder();
     this.modelRouter = new ModelRouter();
 
@@ -87,6 +93,20 @@ export class MonaRuntime {
         this.llmClients.set(providerId, client);
       }
     }
+  }
+
+  /**
+   * Get the memory store instance.
+   */
+  getMemoryStore(): InMemoryMemoryStore {
+    return this.memoryStore;
+  }
+
+  /**
+   * Get the agent registry instance.
+   */
+  getAgentRegistry(): AgentRegistry {
+    return this.agentRegistry;
   }
 
   /**
@@ -128,7 +148,7 @@ export class MonaRuntime {
       return;
     }
 
-    // 1. Add user message to session
+    // 1. Add user message to session & short-term memory
     const userMsg: Message = {
       id: `msg_${Date.now()}`,
       role: "user",
@@ -136,10 +156,47 @@ export class MonaRuntime {
       timestamp: new Date(),
     };
     this.sessionManager.addMessage(sessionId, userMsg);
+    await this.memoryStore.set({
+      scope: "session",
+      scopeId: sessionId,
+      category: "history",
+      key: `user_msg_${Date.now()}`,
+      value: userMessage,
+    });
 
-    yield { type: "status", message: "Analyzing your request..." };
+    yield { type: "status", message: "Analyzing your request and workbook context..." };
 
-    // 2. Build context
+    // 2. Multi-Agent Planning Step
+    const planner = (this.agentRegistry.get("planner") as PlannerAgent) ?? new PlannerAgent();
+    const plannerCtx = {
+      snapshot: workbookSnapshot,
+      activeSheetName: workbookSnapshot?.sheets?.find((s) => s.id === workbookSnapshot.activeSheetId)?.name,
+      headers: workbookSnapshot?.selectedValues?.[0]?.map((c) => c.formatted) ?? [],
+      hasData: Boolean(workbookSnapshot && workbookSnapshot.sheets.length > 0),
+    };
+    const plan = planner.createPlan(userMessage, plannerCtx);
+
+    if (plan.clarificationNeeded && plan.clarificationQuestion) {
+      yield { type: "text", content: plan.clarificationQuestion };
+      yield { type: "done", usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }, cost: 0 };
+      return;
+    }
+
+    const primaryTask = plan.tasks[0];
+    const targetAgentId = primaryTask?.agentId ?? "formula";
+    const specialistAgent = this.agentRegistry.get(targetAgentId);
+
+    if (targetAgentId !== "planner") {
+      yield {
+        type: "agent_switch",
+        from: "planner",
+        to: targetAgentId,
+        reason: `Routing request to ${specialistAgent?.name ?? targetAgentId}`,
+      };
+      yield { type: "status", message: `Executing plan [${plan.complexity.toUpperCase()}] via ${specialistAgent?.name ?? targetAgentId}...` };
+    }
+
+    // 3. Build context
     const updatedSession = this.sessionManager.get(sessionId)!;
     const context = workbookSnapshot
       ? this.contextBuilder.buildFromSnapshot(workbookSnapshot, updatedSession.messages, "normal")
@@ -149,17 +206,23 @@ export class MonaRuntime {
           "normal"
         );
 
-    // 3. Build messages for LLM
-    const systemPrompt = (this.config.systemPrompt ?? SYSTEM_PROMPT) + "\n\n" + this.contextBuilder.toSystemPrompt(context);
+    // 4. Build messages for LLM combining system prompt and specialist prompt
+    const agentPrompt = specialistAgent?.systemPrompt ? `\n\n## Specialist Agent Guidelines (${specialistAgent.name})\n${specialistAgent.systemPrompt}` : "";
+    const systemPrompt = (this.config.systemPrompt ?? SYSTEM_PROMPT) + agentPrompt + "\n\n" + this.contextBuilder.toSystemPrompt(context);
 
     const providerMessages: ProviderMessage[] = [
       { role: "system", content: systemPrompt },
       ...this.buildMessageHistory(updatedSession.messages),
     ];
 
-    // 4. Get tools
+    // 5. Get allowed tools for agent
+    const allowedToolNames = specialistAgent?.tools ?? [];
     const allTools = this.toolRegistry.getAll();
-    const toolDefs: ToolFunctionDef[] = this.toolRegistry.toLLMFormat(allTools);
+    const activeTools = allowedToolNames.length > 0
+      ? allTools.filter((t) => allowedToolNames.includes(t.name))
+      : allTools;
+
+    const toolDefs: ToolFunctionDef[] = this.toolRegistry.toLLMFormat(activeTools.length > 0 ? activeTools : allTools);
 
     // 5. Execute the agent loop (LLM call → tool execution → repeat)
     const maxIterations = this.config.maxIterations ?? 10;

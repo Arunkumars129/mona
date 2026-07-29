@@ -14,3 +14,4 @@ export * from "./context";
 export * from "./cost";
 export * from "./version";
 export * from "./permission";
+export * from "./memory";

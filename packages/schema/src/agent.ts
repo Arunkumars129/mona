@@ -53,20 +53,32 @@ export interface AgentOutput {
 // ── Task Decomposition (Planner) ─────────────────────────────────────
 
 export type TaskStatus = "pending" | "running" | "completed" | "failed" | "skipped";
+export type TaskPriority = "low" | "medium" | "high";
+export type PlanComplexity = "simple" | "moderate" | "complex";
 
 export interface TaskNode {
   readonly id: string;
+  readonly title: string;
   readonly description: string;
   readonly agentId: AgentId;
   readonly status: TaskStatus;
+  readonly priority: TaskPriority;
+  readonly estimatedDuration?: number;
   readonly dependencies: string[];
   readonly input?: string;
-  readonly output?: string;
+  readonly output?: unknown;
+  readonly metadata?: Record<string, unknown>;
 }
 
 export interface TaskPlan {
   readonly id: string;
   readonly userRequest: string;
+  readonly intent: string;
+  readonly complexity: PlanComplexity;
   readonly tasks: TaskNode[];
+  readonly executionOrder: string[];
+  readonly parallelGroups: string[][];
+  readonly clarificationNeeded?: boolean;
+  readonly clarificationQuestion?: string;
   readonly createdAt: Date;
 }

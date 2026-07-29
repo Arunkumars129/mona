@@ -196,11 +196,11 @@ export function SheetUI({
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
   // Version Control UI state
-  const [isCommitModalOpen, setIsCommitModalOpen] = useState(true);
-  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(true);
-  const [isChangesCardOpen, setIsChangesCardOpen] = useState(true);
-  const [isCompareModalOpen, setIsCompareModalOpen] = useState(true);
-  const [isCommitDetailsOpen, setIsCommitDetailsOpen] = useState(true);
+  const [isCommitModalOpen, setIsCommitModalOpen] = useState(false);
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
+  const [isChangesCardOpen, setIsChangesCardOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [isCommitDetailsOpen, setIsCommitDetailsOpen] = useState(false);
 
   const closeSidebar = () => {
     if (sidebarRef.current) {

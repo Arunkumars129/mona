@@ -12,6 +12,8 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@mona/agents": "workspace:*",
+    "@mona/memory": "workspace:*",
     "@mona/runtime": "workspace:*",
     "@mona/schema": "workspace:*",
     "@mona/workbook-service": "workspace:^",

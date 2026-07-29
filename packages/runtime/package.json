@@ -11,6 +11,8 @@
     "@mona/provider": "workspace:*",
     "@mona/tools": "workspace:*",
     "@mona/context": "workspace:*",
+    "@mona/agents": "workspace:*",
+    "@mona/memory": "workspace:*",
     "@mona/workbook-service": "workspace:*"
   },
   "devDependencies": { "@repo/typescript-config": "workspace:*", "typescript": "5.9.2" }

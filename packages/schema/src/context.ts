@@ -6,6 +6,7 @@
 
 import type { CellValue, NamedRange, RangeRef, SheetInfo } from "./workbook";
 import type { Message } from "./session";
+import type { MemoryEntry } from "./memory";
 
 // ── Context Window ───────────────────────────────────────────────────
 
@@ -60,16 +61,6 @@ export interface MemoryContext {
   readonly relevantMemories: MemoryEntry[];
   readonly workbookInsights: string[];
 }
-
-export interface MemoryEntry {
-  readonly id: string;
-  readonly content: string;
-  readonly scope: MemoryScope;
-  readonly relevance: number;
-  readonly createdAt: Date;
-}
-
-export type MemoryScope = "session" | "workbook" | "workspace" | "user";
 
 // ── User Context ─────────────────────────────────────────────────────
 
