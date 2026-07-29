@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Sparkles, ArrowRight, Play, CheckCircle2, History, Bot, Users, Shield, Share2, Plus, Send } from "lucide-react";
 
@@ -82,7 +83,7 @@ export function MarketingHero() {
         {/* Hero Interactive UI Mockup (Matching Attached Image Exactly) */}
         <div className="relative mt-14 mx-auto max-w-5xl rounded-2xl border border-zinc-200 bg-white p-2 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900/90 text-left">
           <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950/50 relative overflow-hidden">
-            
+
             {/* Sheet Titlebar */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-zinc-200 dark:border-zinc-800">
               <div className="flex items-center gap-3">
@@ -110,7 +111,7 @@ export function MarketingHero() {
 
             {/* Layout Grid: Spreadsheet Left + Mona AI Panel Right */}
             <div className="mt-3 grid grid-cols-1 lg:grid-cols-12 gap-4">
-              
+
               {/* Left Column: Spreadsheet Grid */}
               <div className="lg:col-span-7 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-2 overflow-x-auto shadow-sm">
                 {/* Formatting Ribbon */}
@@ -218,11 +219,10 @@ export function MarketingHero() {
                         <button
                           key={idx}
                           onClick={() => setSelectedAction(action.label)}
-                          className={`w-full text-left flex items-center gap-2.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
-                            selectedAction === action.label
+                          className={`w-full text-left flex items-center gap-2.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${selectedAction === action.label
                               ? "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
                               : "border-zinc-200 bg-zinc-50/50 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800/40 dark:text-zinc-300"
-                          }`}
+                            }`}
                         >
                           <span className="text-sm">{action.icon}</span>
                           <span>{action.label}</span>

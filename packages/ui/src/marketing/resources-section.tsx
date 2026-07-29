@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { BookOpen, Clock, ArrowRight } from "lucide-react";
 
@@ -64,11 +65,10 @@ export function MarketingResourcesSection() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
-                activeTab === tab
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${activeTab === tab
                   ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs"
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
-              }`}
+                }`}
             >
               {tab}
             </button>

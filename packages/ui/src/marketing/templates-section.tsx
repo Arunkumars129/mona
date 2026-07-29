@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { LayoutTemplate, ArrowRight, Table, Check } from "lucide-react";
 
@@ -60,11 +61,10 @@ export function MarketingTemplatesSection() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
-                activeCategory === cat
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${activeCategory === cat
                   ? "bg-[#16A34A] text-white shadow-sm"
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-              }`}
+                }`}
             >
               {cat}
             </button>
