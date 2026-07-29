@@ -1,0 +1,34 @@
+# Mona Monorepo License Policy
+
+This repository is structured as a multi-package monorepo under dual licensing terms:
+
+## 1. Proprietary / All Rights Reserved
+The following applications and AI agent core engine packages are **Proprietary & Confidential**.
+All rights reserved. Unauthorized copying, modification, distribution, or public display of these files, via any medium, is strictly prohibited.
+
+- **Applications (`apps/`)**:
+  - `apps/web`
+  - `apps/docs`
+
+- **AI Agent Core Packages (`packages/`)**:
+  - `packages/runtime` (`@mona/runtime`)
+  - `packages/context` (`@mona/context`)
+  - `packages/provider` (`@mona/provider`)
+  - `packages/schema` (`@mona/schema`)
+  - `packages/tools` (`@mona/tools`)
+  - `packages/workbook-service` (`@mona/workbook-service`)
+
+See [`LICENSE-PROPRIETARY`](./LICENSE-PROPRIETARY) for detailed proprietary license terms.
+
+---
+
+## 2. Open Source (Apache License, Version 2.0)
+The following shared developer-facing UI and configuration packages are licensed under the **Apache License, Version 2.0**:
+
+- **Shared Developer Packages (`packages/`)**:
+  - `packages/ui` (`@repo/ui`)
+  - `packages/sheet-core` (`@repo/sheet-core`)
+  - `packages/eslint-config` (`@repo/eslint-config`)
+  - `packages/typescript-config` (`@repo/typescript-config`)
+
+See [`LICENSE-APACHE`](./LICENSE-APACHE) for the full Apache License Version 2.0 text.

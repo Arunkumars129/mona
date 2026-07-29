@@ -1,0 +1,30 @@
+{
+  "name": "@repo/sheet-core",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./index.ts",
+    "./preset": "./preset/index.ts",
+    "./plugin": "./plugin/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@univerjs/presets": "^0.25.1",
+    "@univerjs/preset-sheets-core": "^0.25.1"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "5.9.2"
+  }
+}
