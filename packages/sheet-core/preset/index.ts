@@ -59,24 +59,61 @@ export function getSalesForecastData() {
   return {
     id: 'mona-sheet',
     name: 'Sheet',
-    sheetOrder: ['sheet-01'],
+    sheetOrder: ['sheet-02', 'sheet-01'],
     sheets: {
       'sheet-01': {
         id: 'sheet-01',
         name: 'Sheet1',
-        rowCount: 1_000_000,
-        columnCount: 100,
-        defaultColumnWidth: 100,
-        defaultRowHeight: 24,
+        rowCount: 100,
+        columnCount: 20,
+        defaultColumnWidth: 120,
+        defaultRowHeight: 28,
+        cellData: {},
+      },
+      'sheet-02': {
+        id: 'sheet-02',
+        name: 'Budget',
+        rowCount: 100,
+        columnCount: 20,
+        defaultColumnWidth: 140,
+        defaultRowHeight: 28,
         cellData: {
           0: {
-            0: { v: 'Hello!', s: 'bold' },
-            1: { v: 'Start editing or scroll down for millions more rows', s: 'italic' },
+            0: { v: 'Category', s: 'headerStyle' },
+            1: { v: 'Amount (INR)', s: 'headerStyle' },
+          },
+          1: {
+            0: { v: 'Rent' },
+            1: { v: '15000', t: 2, s: 'alignRight' },
+          },
+          2: {
+            0: { v: 'Groceries' },
+            1: { v: '10000', t: 2, s: 'alignRightHighlight' },
+          },
+          3: {
+            0: { v: 'Utilities' },
+            1: { v: '5000', t: 2, s: 'alignRight' },
+          },
+          4: {
+            0: { v: 'Entertainment' },
+            1: { v: '5000', t: 2, s: 'alignRight' },
+          },
+          5: {
+            0: { v: 'Savings/Misc' },
+            1: { v: '15000', t: 2, s: 'alignRight' },
+          },
+          6: {
+            0: { v: 'Total Amount', s: 'bold' },
+            1: { v: '50000', t: 2, s: 'boldAlignRight' },
           },
         },
         styles: {
           bold: { bl: 1 },
           italic: { it: 1 },
+          headerStyle: { bl: 1, bg: { rgb: '#f8f9fa' } },
+          alignRight: { ht: 2 },
+          alignRightHighlight: { ht: 2, bg: { rgb: '#eef3fe' } },
+          boldAlignRight: { bl: 1, ht: 2 },
         },
       },
     },

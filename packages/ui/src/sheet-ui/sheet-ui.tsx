@@ -15,6 +15,13 @@ import "@univerjs/preset-sheets-core/lib/index.css";
 import { UniverSkeleton } from "./univer-skeleton";
 import AiPanel from "./ai-panel";
 import { setUniverAPI, saveWorkbook, downloadWorkbook, loadSavedWorkbook } from "./univer-bridge";
+import {
+  CommitChangesModal,
+  VersionHistoryPanel,
+  ChangesInCommitCard,
+  CompareVersionsModal,
+  CommitDetailsPanel,
+} from "./version-control-components";
 
 export { UniverSkeleton, AiPanel };
 
@@ -187,6 +194,13 @@ export function SheetUI({
   const sidebarRef = useRef<any>(null);
 
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  // Version Control UI state
+  const [isCommitModalOpen, setIsCommitModalOpen] = useState(true);
+  const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(true);
+  const [isChangesCardOpen, setIsChangesCardOpen] = useState(true);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(true);
+  const [isCommitDetailsOpen, setIsCommitDetailsOpen] = useState(true);
 
   const closeSidebar = () => {
     if (sidebarRef.current) {
@@ -470,6 +484,61 @@ export function SheetUI({
             </svg>
           </button>
 
+          {/* Version Control Header Controls */}
+          <button
+            onClick={() => setIsCommitModalOpen(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              backgroundColor: "#1a73e8",
+              color: "#ffffff",
+              fontSize: "13px",
+              fontWeight: 600,
+              padding: "7px 14px",
+              borderRadius: "18px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(26,115,232,0.25)",
+            }}
+          >
+            <span>Commit changes</span>
+          </button>
+
+          <button
+            onClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)}
+            title="Toggle Version History"
+            style={{
+              background: isHistoryPanelOpen ? "#e8f0fe" : "#ffffff",
+              border: "1px solid #dadce0",
+              cursor: "pointer",
+              padding: "6px 12px",
+              borderRadius: "16px",
+              fontSize: "12px",
+              fontWeight: 600,
+              color: isHistoryPanelOpen ? "#1a73e8" : "#3c4043",
+            }}
+          >
+            History
+          </button>
+
+          <button
+            onClick={() => setIsCompareModalOpen(!isCompareModalOpen)}
+            title="Toggle Compare Versions"
+            style={{
+              background: isCompareModalOpen ? "#e8f0fe" : "#ffffff",
+              border: "1px solid #dadce0",
+              cursor: "pointer",
+              padding: "6px 12px",
+              borderRadius: "16px",
+              fontSize: "12px",
+              fontWeight: 600,
+              color: isCompareModalOpen ? "#1a73e8" : "#3c4043",
+            }}
+          >
+            Compare
+          </button>
+
           {/* Save Status Indicator */}
           {saveStatus && (
             <span
@@ -680,6 +749,34 @@ export function SheetUI({
           position: "relative",
           overflow: "hidden",
         }}
+      />
+
+      {/* ── Version Control UI Overlays matching reference image ── */}
+      <CommitChangesModal
+        isOpen={isCommitModalOpen}
+        onClose={() => setIsCommitModalOpen(false)}
+        onCommit={(msg) => setSaveStatus(`Committed: ${msg.slice(0, 20)}...`)}
+      />
+
+      <VersionHistoryPanel
+        isOpen={isHistoryPanelOpen}
+        onClose={() => setIsHistoryPanelOpen(false)}
+        onOpenCompare={() => setIsCompareModalOpen(true)}
+      />
+
+      <ChangesInCommitCard
+        isOpen={isChangesCardOpen}
+        onClose={() => setIsChangesCardOpen(false)}
+      />
+
+      <CompareVersionsModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+      />
+
+      <CommitDetailsPanel
+        isOpen={isCommitDetailsOpen}
+        onClose={() => setIsCommitDetailsOpen(false)}
       />
     </div>
   );
