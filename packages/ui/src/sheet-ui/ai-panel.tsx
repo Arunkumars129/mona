@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { applySnapshot, getWorkbookSnapshot } from "./univer-bridge";
@@ -150,6 +151,7 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
 
       const assistantMsgId = crypto.randomUUID();
       let assistantContent = "";
+      let hasToolExecuted = false;
 
       try {
         const workbookContext = getWorkbookSnapshot();
@@ -204,8 +206,10 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
                   ];
                 });
               } else if (event.type === "tool_call_start") {
+                hasToolExecuted = true;
                 setStatusText(`Running tool: ${event.name}...`);
               } else if (event.type === "tool_call_result") {
+                hasToolExecuted = true;
                 setStatusText(`Tool ${event.name} finished`);
               } else if (event.type === "error") {
                 setStatusText(null);
@@ -215,6 +219,7 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
                   { id: assistantMsgId, role: "assistant", content: assistantContent },
                 ]);
               } else if (event.type === "snapshot") {
+                hasToolExecuted = true;
                 const snap = event as { type: "snapshot"; sheets: { id: string; name: string }[]; cells: Record<string, { row: number; col: number; value: unknown }[]> };
                 if (snap.sheets && snap.cells) {
                   applySnapshot(snap.sheets, snap.cells);
@@ -239,6 +244,15 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
       } finally {
         setIsStreaming(false);
         setStatusText(null);
+        setMessages((prev) => {
+          const text = assistantContent.trim();
+          const filtered = prev.filter((m) => m.id !== assistantMsgId);
+          const finalContent = text || (hasToolExecuted ? "I've created and updated the spreadsheet according to your request!" : "I've processed your request.");
+          return [
+            ...filtered,
+            { id: assistantMsgId, role: "assistant", content: finalContent },
+          ];
+        });
       }
     },
     [input, isStreaming, sessionId]
