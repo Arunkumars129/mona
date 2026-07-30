@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/typescript-config/react-library.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler"
+  },
+  "include": ["src", "preset", "plugin", "custom"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -13,7 +13,7 @@ import { Plugin, Injector, LocaleType, LocaleService } from "@univerjs/presets";
  * Registered via the `plugins` array in `createUniver()`.
  */
 export class HomeRibbonPlugin extends Plugin {
-  static override pluginName = "HOME_RIBBON_PLUGIN";
+  static pluginName = "HOME_RIBBON_PLUGIN";
 
   protected declare _injector: Injector;
 
@@ -21,7 +21,7 @@ export class HomeRibbonPlugin extends Plugin {
     super();
   }
 
-  override onStarting(): void {
+  onStarting(): void {
     try {
       const localeService = this._injector?.get(LocaleService);
       if (localeService) {

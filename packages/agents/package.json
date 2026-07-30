@@ -1,0 +1,22 @@
+{
+  "name": "@repo/agents",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./formula": "./src/formula-agent/index.ts"
+  },
+  "scripts": { "check-types": "tsc --noEmit" },
+  "dependencies": {
+    "@repo/shared": "workspace:*",
+    "@repo/commands": "workspace:*",
+    "@repo/context": "workspace:*",
+    "@repo/planner": "workspace:*",
+    "@repo/tools": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "5.9.2"
+  }
+}

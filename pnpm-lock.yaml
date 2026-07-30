@@ -69,21 +69,30 @@ importers:
 
   apps/web:
     dependencies:
-      '@mona/memory':
+      '@repo/agents':
+        specifier: workspace:*
+        version: link:../../packages/agents
+      '@repo/context':
+        specifier: workspace:*
+        version: link:../../packages/context
+      '@repo/memory':
         specifier: workspace:*
         version: link:../../packages/memory
-      '@mona/runtime':
+      '@repo/planner':
+        specifier: workspace:*
+        version: link:../../packages/planner
+      '@repo/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
-      '@mona/schema':
+      '@repo/shared':
         specifier: workspace:*
-        version: link:../../packages/schema
-      '@mona/workbook-service':
-        specifier: workspace:^
-        version: link:../../packages/workbook-service
+        version: link:../../packages/shared
       '@repo/sheet-core':
         specifier: workspace:*
         version: link:../../packages/sheet-core
+      '@repo/spreadsheet':
+        specifier: workspace:*
+        version: link:../../packages/spreadsheet
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -103,9 +112,6 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
-      '@tailwindcss/postcss':
-        specifier: ^4.3.3
-        version: 4.3.3
       '@types/node':
         specifier: ^22.15.3
         version: 22.15.3
@@ -115,30 +121,59 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.5
         version: 18.3.7(@types/react@18.3.31)
-      autoprefixer:
-        specifier: ^10.5.4
-        version: 10.5.4(postcss@8.5.24)
       eslint:
         specifier: ^9.39.1
-        version: 9.39.1(jiti@1.21.7)
-      postcss:
-        specifier: ^8.5.24
-        version: 8.5.24
-      tailwindcss:
-        specifier: ^3.4.19
-        version: 3.4.19
+        version: 9.39.1(jiti@2.7.0)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/agents:
+    dependencies:
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/context':
+        specifier: workspace:*
+        version: link:../context
+      '@repo/planner':
+        specifier: workspace:*
+        version: link:../planner
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@repo/tools':
+        specifier: workspace:*
+        version: link:../tools
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/commands:
+    dependencies:
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       typescript:
         specifier: 5.9.2
         version: 5.9.2
 
   packages/context:
     dependencies:
-      '@mona/schema':
+      '@repo/memory':
         specifier: workspace:*
-        version: link:../schema
-      '@mona/workbook-service':
+        version: link:../memory
+      '@repo/shared':
         specifier: workspace:*
-        version: link:../workbook-service
+        version: link:../shared
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -183,11 +218,14 @@ importers:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@2.7.0))(typescript@5.9.2)
 
-  packages/memory:
+  packages/events:
     dependencies:
-      '@mona/schema':
+      '@repo/commands':
         specifier: workspace:*
-        version: link:../schema
+        version: link:../commands
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -196,11 +234,93 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  packages/provider:
+  packages/memory:
     dependencies:
-      '@mona/schema':
+      '@repo/events':
         specifier: workspace:*
-        version: link:../schema
+        version: link:../events
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/observability:
+    dependencies:
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/events':
+        specifier: workspace:*
+        version: link:../events
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/permissions:
+    dependencies:
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/planner:
+    dependencies:
+      '@repo/context':
+        specifier: workspace:*
+        version: link:../context
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/router:
+    dependencies:
+      '@repo/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/context':
+        specifier: workspace:*
+        version: link:../context
+      '@repo/events':
+        specifier: workspace:*
+        version: link:../events
+      '@repo/planner':
+        specifier: workspace:*
+        version: link:../planner
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -211,24 +331,42 @@ importers:
 
   packages/runtime:
     dependencies:
-      '@mona/context':
+      '@repo/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/context':
         specifier: workspace:*
         version: link:../context
-      '@mona/memory':
+      '@repo/events':
+        specifier: workspace:*
+        version: link:../events
+      '@repo/memory':
         specifier: workspace:*
         version: link:../memory
-      '@mona/provider':
+      '@repo/observability':
         specifier: workspace:*
-        version: link:../provider
-      '@mona/schema':
+        version: link:../observability
+      '@repo/permissions':
         specifier: workspace:*
-        version: link:../schema
-      '@mona/tools':
+        version: link:../permissions
+      '@repo/planner':
         specifier: workspace:*
-        version: link:../tools
-      '@mona/workbook-service':
+        version: link:../planner
+      '@repo/router':
         specifier: workspace:*
-        version: link:../workbook-service
+        version: link:../router
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@repo/spreadsheet':
+        specifier: workspace:*
+        version: link:../spreadsheet
+      '@repo/versioning':
+        specifier: workspace:*
+        version: link:../versioning
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -237,7 +375,35 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  packages/schema:
+  packages/sdk:
+    dependencies:
+      '@repo/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/events':
+        specifier: workspace:*
+        version: link:../events
+      '@repo/permissions':
+        specifier: workspace:*
+        version: link:../permissions
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@repo/tools':
+        specifier: workspace:*
+        version: link:../tools
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  packages/shared:
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -274,14 +440,30 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  packages/spreadsheet:
+    dependencies:
+      '@repo/commands':
+        specifier: workspace:*
+        version: link:../commands
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
   packages/tools:
     dependencies:
-      '@mona/schema':
+      '@repo/commands':
         specifier: workspace:*
-        version: link:../schema
-      '@mona/workbook-service':
+        version: link:../commands
+      '@repo/shared':
         specifier: workspace:*
-        version: link:../workbook-service
+        version: link:../shared
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -335,11 +517,14 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  packages/workbook-service:
+  packages/versioning:
     dependencies:
-      '@mona/schema':
+      '@repo/commands':
         specifier: workspace:*
-        version: link:../schema
+        version: link:../commands
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*

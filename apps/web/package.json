@@ -12,9 +12,13 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@mona/runtime": "workspace:*",
-    "@mona/schema": "workspace:*",
-    "@mona/workbook-service": "workspace:^",
+    "@repo/agents": "workspace:*",
+    "@repo/context": "workspace:*",
+    "@repo/memory": "workspace:*",
+    "@repo/planner": "workspace:*",
+    "@repo/runtime": "workspace:*",
+    "@repo/shared": "workspace:*",
+    "@repo/spreadsheet": "workspace:*",
     "@repo/sheet-core": "workspace:*",
     "@repo/ui": "workspace:*",
     "next": "16.2.0",
