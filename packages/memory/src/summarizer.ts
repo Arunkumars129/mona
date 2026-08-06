@@ -1,5 +1,5 @@
 import type { MonaEvent } from '@repo/events';
-import type { MemoryStore } from './store.js';
+import type { MemoryStore } from './store';
 
 /** Incrementally patches semantic workbook summary on structural edits */
 export class SemanticSummarizer {

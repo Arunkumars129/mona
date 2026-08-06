@@ -1,7 +1,7 @@
-import type { Agent } from './agent-base.js';
-import { createStubAgent } from './create-stub-agent.js';
-import { FormulaAgent } from './formula-agent/index.js';
-import { MCPAgent } from './mcp-agent/index.js';
+import type { Agent } from './agent-base';
+import { createStubAgent } from './create-stub-agent';
+import { FormulaAgent } from './formula-agent';
+import { MCPAgent } from './mcp-agent';
 
 /** All built-in specialized agents — swappable via the same Agent interface */
 export function createDefaultAgentRegistry(): Map<string, Agent> {

@@ -2,7 +2,7 @@ import { createCommand, type BaseCommand } from '@repo/commands';
 import type { LayeredContext } from '@repo/context';
 import type { PlannedTask } from '@repo/planner';
 import type { AgentId, Capability } from '@repo/shared';
-import { BaseAgent } from './agent-base.js';
+import { BaseAgent } from './agent-base';
 
 export interface StubAgentConfig {
   id: AgentId;

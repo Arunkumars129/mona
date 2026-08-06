@@ -1,2 +1,2 @@
-export * from './store.js';
-export * from './summarizer.js';
+export * from './store';
+export * from './summarizer';

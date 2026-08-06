@@ -1,5 +1,5 @@
 import type { BaseCommand } from '@repo/commands';
-import type { CommitStore, WorkbookSnapshot } from './commit.js';
+import type { CommitStore, WorkbookSnapshot } from './commit';
 
 export class VersionRestorer {
   constructor(

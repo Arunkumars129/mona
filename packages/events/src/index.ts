@@ -1,2 +1,2 @@
-export * from './schema.js';
-export * from './bus.js';
+export * from './schema';
+export * from './bus';

@@ -123,6 +123,61 @@ function GeminiSparkleLogo({ size = 32 }: { size?: number }) {
   );
 }
 
+function renderFormattedContent(content: string) {
+  const lines = content.split("\n");
+  return lines.map((line, idx) => {
+    let text = line.trim();
+    if (!text) return <div key={idx} style={{ height: "4px" }} />;
+
+    const isBullet = text.startsWith("• ") || text.startsWith("- ");
+    if (isBullet) text = text.slice(2);
+
+    const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+
+    return (
+      <div
+        key={idx}
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: isBullet ? "6px" : "0",
+          marginBottom: "3px",
+        }}
+      >
+        {isBullet && <span style={{ color: "#1a73e8", fontWeight: "bold" }}>•</span>}
+        <span style={{ flex: 1 }}>
+          {parts.map((part, pIdx) => {
+            if (part.startsWith("**") && part.endsWith("**")) {
+              return (
+                <strong key={pIdx} style={{ fontWeight: 600 }}>
+                  {part.slice(2, -2)}
+                </strong>
+              );
+            }
+            if (part.startsWith("`") && part.endsWith("`")) {
+              return (
+                <code
+                  key={pIdx}
+                  style={{
+                    backgroundColor: "rgba(0,0,0,0.06)",
+                    padding: "2px 5px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  {part.slice(1, -1)}
+                </code>
+              );
+            }
+            return part;
+          })}
+        </span>
+      </div>
+    );
+  });
+}
+
 export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -137,6 +192,66 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [statusText, setStatusText] = useState<string | null>(null);
+  const [pendingPermission, setPendingPermission] = useState<{
+    sessionId: string;
+    commands: Array<{
+      id: string;
+      type: string;
+      payload: unknown;
+      targetSheetId: string;
+      riskLevel: string;
+      range?: { start: string; end: string };
+    }>;
+    reason?: string;
+  } | null>(null);
+
+  const handleApproval = useCallback(
+    async (approved: boolean) => {
+      if (!pendingPermission) return;
+      const targetSessionId = pendingPermission.sessionId;
+      setPendingPermission(null);
+
+      const userDecisionMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: approved ? "Approved action" : "Denied action",
+      };
+      setMessages((prev) => [...prev, userDecisionMsg]);
+      setStatusText(approved ? "Applying approved changes..." : "Cancelled action");
+
+      try {
+        const response = await fetch("/api/ai/chat/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: targetSessionId,
+            approved,
+          }),
+        });
+        const data = await response.json();
+        const assistantMsg: Message = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: approved
+            ? `Action approved and executed. (${data.commandResults?.length || 0} command(s) applied)`
+            : "Action was denied. No changes were made to the spreadsheet.",
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (err) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: `⚠️ Failed to process permission decision: ${String(err)}`,
+          },
+        ]);
+      } finally {
+        setStatusText(null);
+      }
+    },
+    [pendingPermission]
+  );
 
   const sendPrompt = useCallback(
     async (promptText?: string) => {
@@ -174,61 +289,100 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
           setSessionId(newSessionId);
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
+        const contentType = response.headers.get("content-type") || "";
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        if (contentType.includes("application/json")) {
+          const data = await response.json();
+          if (data.error) {
+            assistantContent = `⚠️ Error: ${data.error}`;
+          } else if (data.plan || data.commandResults || data.status) {
+            const taskIntents = data.plan?.tasks?.map((t: { intent?: string }) => t.intent).filter(Boolean).join(", ");
+            const appliedCmds = data.commandResults?.filter((c: { status?: string }) => c.status === "applied").length ?? 0;
+            hasToolExecuted = appliedCmds > 0;
+            assistantContent = `I've processed your request.\n\n` +
+              `• **Status**: ${data.status || 'ok'}\n` +
+              (taskIntents ? `• **Task**: ${taskIntents}\n` : '') +
+              `• **Commands Executed**: ${appliedCmds}` +
+              (data.commitId ? `\n• **Commit**: \`${data.commitId.slice(0, 8)}\`` : '');
+          } else {
+            assistantContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+          }
+          setMessages((prev) => [
+            ...prev.filter((m) => m.id !== assistantMsgId),
+            { id: assistantMsgId, role: "assistant", content: assistantContent },
+          ]);
+        } else {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n\n");
-          buffer = lines.pop() ?? "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data: ")) continue;
-            try {
-              const event = JSON.parse(trimmed.slice(6));
-              if (event.type === "session" && event.sessionId) {
-                setSessionId(event.sessionId);
-              } else if (event.type === "status") {
-                setStatusText(event.message);
-              } else if (event.type === "text") {
-                setStatusText(null);
-                assistantContent += event.content;
-                setMessages((prev) => {
-                  const filtered = prev.filter((m) => m.id !== assistantMsgId);
-                  return [
-                    ...filtered,
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n\n");
+            buffer = lines.pop() ?? "";
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith("data: ")) continue;
+              try {
+                const event = JSON.parse(trimmed.slice(6));
+                if (event.type === "session" && event.sessionId) {
+                  setSessionId(event.sessionId);
+                } else if (event.type === "thinking") {
+                  setStatusText(`🤔 ${event.message}`);
+                } else if (event.type === "planning_started") {
+                  setStatusText(`📋 ${event.message}`);
+                } else if (event.type === "planning_finished") {
+                  setStatusText(`✅ Execution plan created`);
+                } else if (event.type === "executing") {
+                  setStatusText(`⚡ ${event.message}`);
+                } else if (event.type === "status") {
+                  setStatusText(event.message);
+                } else if (event.type === "text") {
+                  setStatusText(null);
+                  assistantContent += event.content;
+                  setMessages((prev) => {
+                    const filtered = prev.filter((m) => m.id !== assistantMsgId);
+                    return [
+                      ...filtered,
+                      { id: assistantMsgId, role: "assistant", content: assistantContent },
+                    ];
+                  });
+                } else if (event.type === "tool_call_start") {
+                  hasToolExecuted = true;
+                  setStatusText(`Running tool: ${event.name}...`);
+                } else if (event.type === "tool_call_result") {
+                  hasToolExecuted = true;
+                  setStatusText(`Tool ${event.name} finished`);
+                } else if (event.type === "permission_required") {
+                  setStatusText(null);
+                  setPendingPermission({
+                    sessionId: event.sessionId,
+                    commands: event.commands || [],
+                    reason: event.message,
+                  });
+                } else if (event.type === "error") {
+                  setStatusText(null);
+                  assistantContent += `\n\n⚠️ Error: ${event.message}`;
+                  setMessages((prev) => [
+                    ...prev.filter((m) => m.id !== assistantMsgId),
                     { id: assistantMsgId, role: "assistant", content: assistantContent },
-                  ];
-                });
-              } else if (event.type === "tool_call_start") {
-                hasToolExecuted = true;
-                setStatusText(`Running tool: ${event.name}...`);
-              } else if (event.type === "tool_call_result") {
-                hasToolExecuted = true;
-                setStatusText(`Tool ${event.name} finished`);
-              } else if (event.type === "error") {
-                setStatusText(null);
-                assistantContent += `\n\n⚠️ Error: ${event.message}`;
-                setMessages((prev) => [
-                  ...prev.filter((m) => m.id !== assistantMsgId),
-                  { id: assistantMsgId, role: "assistant", content: assistantContent },
-                ]);
-              } else if (event.type === "snapshot") {
-                hasToolExecuted = true;
-                const snap = event as { type: "snapshot"; sheets: { id: string; name: string }[]; cells: Record<string, { row: number; col: number; value: unknown }[]> };
-                if (snap.sheets && snap.cells) {
-                  applySnapshot(snap.sheets, snap.cells);
+                  ]);
+                } else if (event.type === "snapshot") {
+                  hasToolExecuted = true;
+                  const snap = event as { type: "snapshot"; sheets: { id: string; name: string }[]; cells: Record<string, { row: number; col: number; value: unknown; backgroundColor?: string }[]> };
+                  if (snap.sheets && snap.cells) {
+                    applySnapshot(snap.sheets, snap.cells);
+                  }
+                } else if (event.type === "done" || event.type === "completed") {
+                  setStatusText(null);
                 }
-              } else if (event.type === "done") {
-                setStatusText(null);
+              } catch {
+                // skip malformed SSE JSON
               }
-            } catch {
-              // skip malformed SSE JSON
             }
           }
         }
@@ -468,16 +622,16 @@ export default function AiPanel({ darkMode = false, onClose }: AiPanelProps) {
               >
                 <div
                   style={{
-                    padding: "10px 14px",
+                    padding: "12px 16px",
                     borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                     backgroundColor: msg.role === "user" ? c.userBubble : c.aiBubble,
                     color: c.text,
                     fontSize: "14px",
-                    lineHeight: 1.45,
+                    lineHeight: 1.5,
                     border: msg.role === "assistant" ? `1px solid ${c.cardBorder}` : "none",
                   }}
                 >
-                  {msg.content}
+                  {renderFormattedContent(msg.content)}
                 </div>
               </div>
             ))}

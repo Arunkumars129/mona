@@ -1,2 +1,2 @@
-export * from './engine.js';
-export * from './policies/core.js';
+export * from './engine';
+export * from './policies/core';

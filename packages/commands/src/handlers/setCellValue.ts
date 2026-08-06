@@ -1,4 +1,4 @@
-import type { BaseCommand, CommandHandler, SetCellValuePayload } from '../types.js';
+import type { BaseCommand, CommandHandler, SetCellValuePayload } from '../types';
 
 export const setCellValueHandler: CommandHandler<'SetCellValue'> = {
   type: 'SetCellValue',

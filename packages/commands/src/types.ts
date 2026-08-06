@@ -44,6 +44,20 @@ export interface SetFormulaPayload {
   overwritesExisting?: boolean;
 }
 
+export interface CellStyle {
+  backgroundColor?: string;
+  fontColor?: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  fontSize?: number;
+}
+
+export interface FormatRangePayload {
+  range: A1Range;
+  style: CellStyle;
+}
+
 export interface VerificationResult {
   formulaValid: boolean;
   brokenReferences: string[];
@@ -78,6 +92,8 @@ export interface SpreadsheetAdapter {
   getCellFormula(sheetId: string, cellRef: string): string | null;
   setCellValue(sheetId: string, cellRef: string, value: unknown): void;
   setFormula(sheetId: string, cellRef: string, formula: string): void;
+  getCellStyle(sheetId: string, cellRef: string): CellStyle | null;
+  setRangeStyle(sheetId: string, range: A1Range, style: CellStyle): void;
   rangeExists(sheetId: string, range: A1Range): boolean;
   verifyFormula(sheetId: string, cellRef: string): VerificationResult;
 }

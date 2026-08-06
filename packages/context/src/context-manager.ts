@@ -1,6 +1,6 @@
 import type { MemoryStore } from '@repo/memory';
 import type { ConversationTurn, WorkbookMetadata } from '@repo/shared';
-import { boundContext, rankAndCompress, type LayeredContext } from './layers.js';
+import { boundContext, rankAndCompress, type LayeredContext } from './layers';
 
 export interface ContextManagerDeps {
   memory: MemoryStore;
@@ -57,4 +57,4 @@ export class ContextManager {
   }
 }
 
-export * from './layers.js';
+export * from './layers';

@@ -19,7 +19,7 @@ export function getWorkbookSnapshot(): {
     try {
         const workbook = api.getActiveWorkbook?.();
         if (!workbook) return null;
-        const snapshot = workbook.getSnapshot?.();
+        const snapshot = workbook.save ? workbook.save() : workbook.getSnapshot?.();
         if (!snapshot?.sheets) return null;
         const sheets = Object.entries(snapshot.sheets).map(
             ([id, sheet]: [string, any], index: number) => ({
@@ -120,7 +120,7 @@ function ensureSheet(
 
 export function applySnapshot(
     sheets: { id: string; name: string }[],
-    cells: Record<string, { row: number; col: number; value: unknown }[]>
+    cells: Record<string, { row: number; col: number; value: unknown; backgroundColor?: string }[]>
 ): void {
     const api = getUniverAPI();
     if (!api) return;
@@ -161,7 +161,7 @@ export function applySnapshot(
                         } else if (range.setValue) {
                             range.setValue(value);
                         }
-                    } else {
+                    } else if (value !== undefined) {
                         // Parse numeric strings
                         const num = typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value)
                             ? parseFloat(value)
@@ -169,6 +169,12 @@ export function applySnapshot(
                         if (range.setValue) {
                             range.setValue(num);
                         }
+                    }
+                    // Apply background color if provided
+                    if (cell.backgroundColor && range.setStyle) {
+                        range.setStyle({ bg: cell.backgroundColor });
+                    } else if (cell.backgroundColor && range.setBackgroundColor) {
+                        range.setBackgroundColor(cell.backgroundColor);
                     }
                 } catch {
                     // skip individual cell errors

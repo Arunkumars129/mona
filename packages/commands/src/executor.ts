@@ -1,4 +1,4 @@
-import type { BaseCommand, CommandContext, CommandHandler, CommandResult } from './types.js';
+import type { BaseCommand, CommandContext, CommandHandler, CommandResult } from './types';
 
 export class CommandExecutor {
   private handlers = new Map<string, CommandHandler>();

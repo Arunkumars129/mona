@@ -1,7 +1,7 @@
 import { createCommand } from '@repo/commands';
 import type { LayeredContext } from '@repo/context';
 import type { PlannedTask } from '@repo/planner';
-import { BaseAgent } from '../agent-base.js';
+import { BaseAgent } from '../agent-base';
 
 export interface MCPAgentConfig {
   serverUrl: string;

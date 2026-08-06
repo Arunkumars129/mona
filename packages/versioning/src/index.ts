@@ -1,3 +1,3 @@
-export * from './commit.js';
-export * from './diff.js';
-export * from './restore.js';
+export * from './commit';
+export * from './diff';
+export * from './restore';

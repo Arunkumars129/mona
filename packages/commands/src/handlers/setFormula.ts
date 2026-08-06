@@ -1,4 +1,4 @@
-import type { BaseCommand, CommandHandler, SetFormulaPayload } from '../types.js';
+import type { BaseCommand, CommandHandler, SetFormulaPayload } from '../types';
 
 export const setFormulaHandler: CommandHandler<'SetFormula'> = {
   type: 'SetFormula',

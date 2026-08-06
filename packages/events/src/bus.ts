@@ -1,4 +1,4 @@
-import type { EventHandler, MonaEvent, Unsubscribe } from './schema.js';
+import type { EventHandler, MonaEvent, Unsubscribe } from './schema';
 
 export class EventBus {
   private handlers = new Map<string, Set<EventHandler>>();

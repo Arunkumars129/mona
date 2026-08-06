@@ -1,1 +1,1 @@
-export * from './context-manager.js';
+export * from './context-manager';

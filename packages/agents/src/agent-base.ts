@@ -26,7 +26,7 @@ export abstract class BaseAgent implements Agent {
   abstract readonly id: AgentId;
   abstract readonly capabilities: Capability[];
   readonly timeoutMs: number = 30_000;
-  readonly maxRetries = 2;
+  readonly maxRetries: number = 2;
 
   abstract run(
     task: PlannedTask,

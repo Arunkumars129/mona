@@ -1,4 +1,4 @@
-import type { SessionState } from './runtime.js';
+import type { SessionState } from './runtime';
 
 /** Session persistence — production uses Postgres + Redis */
 export class SessionStore {

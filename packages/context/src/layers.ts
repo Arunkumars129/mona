@@ -32,6 +32,8 @@ export interface LayeredContext {
   versionSummary: CommitSummary[];
   recentEdits: CellEditSummary[];
   semanticSummary: string;
+  /** Live snapshot of cells written by earlier tasks in the current turn */
+  currentCells?: Array<{ cellRef: string; value: unknown; formula: string | null }>;
   tokenEstimate?: number;
 }
 

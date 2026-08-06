@@ -1,18 +1,20 @@
 import type { Agent } from '@repo/agents';
 import {
   CommandExecutor,
+  formatRangeHandler,
   setCellValueHandler,
   setFormulaHandler,
   type BaseCommand,
   type CommandResult,
 } from '@repo/commands';
-import type { ContextManager } from '@repo/context';
+import type { ContextManager, LayeredContext } from '@repo/context';
 import { EventBus } from '@repo/events';
 import type { MemoryStore } from '@repo/memory';
 import { ExecutionTracer, type ExecutionTrace } from '@repo/observability';
 import { corePolicies, PermissionEngine } from '@repo/permissions';
 import type { PlannerAgent, ExecutionPlan } from '@repo/planner';
-import { AgentRouter } from '@repo/router';
+import { topologicalSort } from '@repo/planner';
+import { AgentRouter, groupIndependentWaves } from '@repo/router';
 import type { UniverAdapter } from '@repo/spreadsheet';
 import type { PolicyContext } from '@repo/shared';
 import { CommitStore } from '@repo/versioning';
@@ -31,6 +33,7 @@ export interface TurnResult {
   status: 'ok' | 'pending_approval' | 'error' | 'cancelled';
   plan?: ExecutionPlan;
   commandResults?: CommandResult[];
+  proposedCommands?: BaseCommand[];
   pendingCommands?: BaseCommand[];
   trace?: ExecutionTrace;
   commitId?: string;
@@ -69,7 +72,7 @@ export class MonaRuntime {
     for (const agent of deps.agents) this.router.register(agent);
 
     this.executor = new CommandExecutor();
-    this.executor.registerAll([setFormulaHandler, setCellValueHandler]);
+    this.executor.registerAll([setFormulaHandler, setCellValueHandler, formatRangeHandler]);
 
     this.permissionEngine = new PermissionEngine(corePolicies, deps.policyContext);
     this.tracer.attach(this.bus);
@@ -99,9 +102,9 @@ export class MonaRuntime {
       const plan = await this.deps.planner.plan(message, context);
       this.sessions.set(sessionId, { turnId, plan, completedTaskIds: [] });
 
-      const proposedCommands = await this.router.executePlan(plan, context);
-      const { applied, pending, results } = await this.executeWithPermissions(
-        proposedCommands,
+      const { proposedCommands, applied, pending, results } = await this.executePlanTasks(
+        plan,
+        context,
         turnId
       );
 
@@ -136,6 +139,7 @@ export class MonaRuntime {
         status: 'ok',
         plan,
         commandResults: results,
+        proposedCommands,
         commitId: commit.id,
         trace: this.tracer.getTrace(turnId),
       };
@@ -205,6 +209,54 @@ export class MonaRuntime {
       correlationId: turnId,
       at: new Date().toISOString(),
     });
+  }
+
+  private async executePlanTasks(
+    plan: ExecutionPlan,
+    context: LayeredContext,
+    turnId: string
+  ): Promise<{
+    proposedCommands: BaseCommand[];
+    applied: CommandResult[];
+    pending: BaseCommand[];
+    results: CommandResult[];
+  }> {
+    const sorted = topologicalSort(plan.tasks, plan.edges);
+    const waves =
+      plan.executionMode === 'parallel'
+        ? groupIndependentWaves(sorted, plan.edges)
+        : sorted.map((t) => [t]);
+
+    const proposedCommands: BaseCommand[] = [];
+    const applied: CommandResult[] = [];
+    const pending: BaseCommand[] = [];
+    const results: CommandResult[] = [];
+
+    // Execute wave-by-wave, applying each wave's commands to the spreadsheet
+    // before the next wave runs so later agents see prior work.
+    let currentContext = context;
+    for (const wave of waves) {
+      const waveCommands = (
+        await Promise.all(wave.map((task) => this.router.execute(task, currentContext)))
+      ).flat();
+
+      proposedCommands.push(...waveCommands);
+
+      const outcome = await this.executeWithPermissions(waveCommands, turnId);
+      results.push(...outcome.results);
+      applied.push(...outcome.applied);
+      pending.push(...outcome.pending);
+
+      if (pending.length > 0) break;
+
+      // Feed the live sheet state into the next task's context
+      currentContext = {
+        ...currentContext,
+        currentCells: this.deps.spreadsheet.getSnapshot(),
+      };
+    }
+
+    return { proposedCommands, applied, pending, results };
   }
 
   private async executeWithPermissions(

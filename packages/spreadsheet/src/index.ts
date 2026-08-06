@@ -1,1 +1,1 @@
-export * from './univer-adapter.js';
+export * from './univer-adapter';

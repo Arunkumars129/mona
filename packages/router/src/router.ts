@@ -96,7 +96,7 @@ export class AgentRouter {
   }
 }
 
-function groupIndependentWaves(
+export function groupIndependentWaves(
   tasks: PlannedTask[],
   edges: { from: string; to: string }[]
 ): PlannedTask[][] {

@@ -1,5 +1,5 @@
 import type { BaseCommand } from '@repo/commands';
-import type { PermissionPolicy } from '../engine.js';
+import type { PermissionPolicy } from '../engine';
 
 function rangeSize(range?: { start: string; end: string }): number {
   if (!range) return 0;
@@ -42,6 +42,11 @@ export const corePolicies: PermissionPolicy[] = [
     riskLevel: 'safe',
     reason: 'single cell write in bounded scope',
     matches: (c) => c.type === 'SetCellValue' || c.type === 'SetFormula',
+  },
+  {
+    riskLevel: 'safe',
+    reason: 'non-destructive formatting change',
+    matches: (c) => c.type === 'FormatRange',
   },
 ];
 
